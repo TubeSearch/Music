@@ -447,6 +447,65 @@
             });
         }
 
+        // Split base64 data into chunks for Firestore
+        function chunkBase64Data(base64Data, chunkSize = 900000) { // ~900KB chunks
+            const chunks = [];
+            const dataOnly = base64Data.split(',')[1]; // Remove data URL prefix
+            const mimeType = base64Data.split(',')[0]; // Keep the data URL prefix
+            
+            for (let i = 0; i < dataOnly.length; i += chunkSize) {
+                chunks.push(dataOnly.substring(i, i + chunkSize));
+            }
+            
+            return { chunks, mimeType };
+        }
+
+        // Reconstruct base64 data from chunks
+        async function reconstructBase64FromChunks(songId) {
+            try {
+                // Get the main song document first to know how many chunks
+                const songDoc = await getDocs(query(collection(db, 'songs'), 
+                    orderBy('uploadedAt', 'desc')));
+                
+                let mainSong = null;
+                songDoc.forEach(doc => {
+                    if (doc.id === songId) {
+                        mainSong = { id: doc.id, ...doc.data() };
+                    }
+                });
+
+                if (!mainSong || !mainSong.totalChunks) {
+                    throw new Error('Song metadata not found');
+                }
+
+                // Get all chunks
+                const chunkPromises = [];
+                for (let i = 0; i < mainSong.totalChunks; i++) {
+                    chunkPromises.push(
+                        getDocs(query(collection(db, `songs/${songId}/chunks`)))
+                    );
+                }
+
+                const chunkDocs = await Promise.all(chunkPromises);
+                const chunks = [];
+                
+                // Get chunks from subcollection
+                const chunksSnapshot = await getDocs(collection(db, `songs/${songId}/chunks`));
+                chunksSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    chunks[data.index] = data.chunk;
+                });
+
+                // Reconstruct the full base64 string
+                const fullData = chunks.join('');
+                return `${mainSong.mimeTypePrefix},${fullData}`;
+
+            } catch (error) {
+                console.error('Error reconstructing audio data:', error);
+                throw error;
+            }
+        }
+
         // Upload functionality
         uploadBtn.addEventListener('click', async () => {
             const file = audioFile.files[0];
@@ -457,12 +516,6 @@
                 return;
             }
 
-            // Check file size (Allow up to 10MB files)
-            if (file.size > 10 * 1024 * 1024) {
-                showMessage('File too large. Please select a file smaller than 10MB.', 'error');
-                return;
-            }
-
             uploadBtn.disabled = true;
             uploadBtn.textContent = 'Converting & Uploading...';
 
@@ -470,19 +523,35 @@
                 // Convert audio file to base64
                 const base64Data = await fileToBase64(file);
                 const duration = await getAudioDuration(file);
+                
+                // Split base64 data into chunks
+                const { chunks, mimeType } = chunkBase64Data(base64Data);
 
-                // Save audio data and metadata to Firestore
-                await addDoc(collection(db, 'songs'), {
+                // Save main song metadata to Firestore
+                const songDocRef = await addDoc(collection(db, 'songs'), {
                     title: title,
-                    audioData: base64Data, // Store base64 encoded audio
                     filename: file.name,
                     size: file.size,
                     mimeType: file.type,
+                    mimeTypePrefix: mimeType,
                     uploadedAt: new Date(),
-                    duration: duration
+                    duration: duration,
+                    totalChunks: chunks.length,
+                    isChunked: true
                 });
 
-                showMessage('Song uploaded successfully!', 'success');
+                // Save chunks to subcollection
+                const chunkPromises = chunks.map((chunk, index) => 
+                    addDoc(collection(db, `songs/${songDocRef.id}/chunks`), {
+                        index: index,
+                        chunk: chunk,
+                        uploadedAt: new Date()
+                    })
+                );
+
+                await Promise.all(chunkPromises);
+
+                showMessage(`Song uploaded successfully in ${chunks.length} chunks!`, 'success');
                 
                 // Reset form
                 audioFile.value = '';
