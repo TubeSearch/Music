@@ -406,7 +406,6 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
         // DOM elements
         const audioFile = document.getElementById('audioFile');
@@ -438,6 +437,16 @@
             }
         });
 
+        // Convert file to base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
         // Upload functionality
         uploadBtn.addEventListener('click', async () => {
             const file = audioFile.files[0];
@@ -448,23 +457,29 @@
                 return;
             }
 
+            // Check file size (Firestore has 1MB document limit, so limit to ~800KB)
+            if (file.size > 800000) {
+                showMessage('File too large. Please select a file smaller than 800KB.', 'error');
+                return;
+            }
+
             uploadBtn.disabled = true;
-            uploadBtn.textContent = 'Uploading...';
+            uploadBtn.textContent = 'Converting & Uploading...';
 
             try {
-                // Upload file to Firebase Storage
-                const storageRef = ref(storage, `audio/${Date.now()}_${file.name}`);
-                const snapshot = await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(snapshot.ref);
+                // Convert audio file to base64
+                const base64Data = await fileToBase64(file);
+                const duration = await getAudioDuration(file);
 
-                // Save metadata to Firestore
+                // Save audio data and metadata to Firestore
                 await addDoc(collection(db, 'songs'), {
                     title: title,
-                    url: downloadURL,
+                    audioData: base64Data, // Store base64 encoded audio
                     filename: file.name,
                     size: file.size,
+                    mimeType: file.type,
                     uploadedAt: new Date(),
-                    duration: await getAudioDuration(file)
+                    duration: duration
                 });
 
                 showMessage('Song uploaded successfully!', 'success');
@@ -528,7 +543,7 @@
             }
 
             const songsGrid = songs.map(song => `
-                <div class="song-card" onclick="playSong('${song.url}', '${song.title}')">
+                <div class="song-card" onclick="playSong('${song.audioData}', '${song.title}')">
                     <div class="song-title">${song.title}</div>
                     <div class="song-meta">
                         ${formatFileSize(song.size)} • ${formatDuration(song.duration)}
@@ -545,10 +560,10 @@
         }
 
         // Play song
-        window.playSong = async (url, title) => {
-            currentSong = { url, title };
+        window.playSong = async (audioData, title) => {
+            currentSong = { audioData, title };
             currentTrackTitle.textContent = title;
-            audioPlayer.src = url;
+            audioPlayer.src = audioData; // Use base64 data URL directly
             playerSection.classList.add('active');
             
             // Generate waveform when audio loads
@@ -569,8 +584,15 @@
             try {
                 // Create AudioContext for waveform analysis
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const response = await fetch(audioPlayer.src);
-                const arrayBuffer = await response.arrayBuffer();
+                
+                // Convert base64 to array buffer
+                const base64Data = audioPlayer.src.split(',')[1];
+                const binaryString = window.atob(base64Data);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const arrayBuffer = bytes.buffer;
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                 
                 // Get audio data
