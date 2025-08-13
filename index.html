@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoundSync - Share Your Beats</title>
@@ -80,12 +79,14 @@
             background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
             transform: translateY(-2px);
         }
+        
+        
 
         .upload-icon {
-            font-size: 4rem;
-            color: #a855f7;
-            margin-bottom: 1rem;
+            width: 120px;
+            height: auto;
         }
+
 
         .input-group {
             margin: 1rem 0;
@@ -154,6 +155,7 @@
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
             cursor: pointer;
+            position: relative;
         }
 
         .song-card:hover {
@@ -172,6 +174,36 @@
         .song-meta {
             color: #9ca3af;
             font-size: 0.9rem;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .song-card:hover .delete-btn {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .delete-btn:hover {
+            background: linear-gradient(45deg, #dc2626, #b91c1c);
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.6);
         }
 
         .player-section {
@@ -258,8 +290,8 @@
         }
 
         .waveform-bar.active {
-            background: linear-gradient(to top, #f97316, #fbbf24);
-            box-shadow: 0 0 10px rgba(249, 115, 22, 0.6);
+            background: linear-gradient(to top, #1e40af, #3b82f6);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
         }
 
         .progress-overlay {
@@ -268,8 +300,8 @@
             left: 0;
             height: 100%;
             background: linear-gradient(90deg, 
-                rgba(249, 115, 22, 0.3) 0%, 
-                rgba(249, 115, 22, 0.1) 100%);
+                rgba(30, 64, 175, 0.3) 0%, 
+                rgba(59, 130, 246, 0.1) 100%);
             transition: width 0.1s ease;
             border-radius: 8px;
         }
@@ -338,17 +370,17 @@
             }
         }
     </style>
-</head>
-<body>
+
     <div class="header">
-        <h1 class="logo">🎵 SoundSync</h1>
+        <h1 class="logo">SoundSync</h1>
         <p class="tagline">Share your beats across all devices</p>
     </div>
 
     <div class="container">
         <div class="upload-section">
             <div class="upload-area" onclick="document.getElementById('audioFile').click()">
-                <div class="upload-icon">🎵</div>
+            <img class="upload-icon" src="https://uploads.onecompiler.io/43hrj7rd3/43tm7xcmd/Screenshot_2025-08-13_150727-removebg-preview.png" alt="Upload Icon">
+
                 <h3>Drop your audio files here or click to browse</h3>
                 <p>Supports MP3, WAV, OGG formats</p>
             </div>
@@ -379,7 +411,6 @@
                     <div class="progress-overlay" id="progressOverlay"></div>
                     <div class="waveform" id="waveform">
                         <!-- Waveform bars will be generated here -->
-                        <!-- commnet -->
                     </div>
                 </div>
             </div>
@@ -391,7 +422,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, doc, onSnapshot, orderBy, query } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, getDocs, doc, onSnapshot, orderBy, query, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -438,7 +469,51 @@
             }
         });
 
-        // Convert file to base64
+        // Delete song and all related chunks
+        async function deleteSong(songId, songTitle, event) {
+            event.stopPropagation(); // Prevent playing the song when delete is clicked
+            
+            if (!confirm(`Are you sure you want to delete "${songTitle}"? This cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                // Show deleting message
+                showMessage(`Deleting "${songTitle}"...`, 'error');
+
+                // Delete all chunks first (if it's a chunked song)
+                const chunksSnapshot = await getDocs(collection(db, `songs/${songId}/chunks`));
+                const deleteChunkPromises = [];
+                
+                chunksSnapshot.forEach((chunkDoc) => {
+                    deleteChunkPromises.push(deleteDoc(doc(db, `songs/${songId}/chunks`, chunkDoc.id)));
+                });
+
+                await Promise.all(deleteChunkPromises);
+
+                // Delete the main song document
+                await deleteDoc(doc(db, 'songs', songId));
+
+                showMessage(`"${songTitle}" deleted successfully!`, 'success');
+
+                // If this was the currently playing song, stop it
+                if (currentSong && currentTrackTitle.textContent === songTitle) {
+                    audioPlayer.pause();
+                    audioPlayer.src = '';
+                    playerSection.classList.remove('active');
+                    currentSong = null;
+                    isPlaying = false;
+                    playBtn.textContent = '▶️';
+                }
+
+            } catch (error) {
+                console.error('Delete error:', error);
+                showMessage(`Failed to delete "${songTitle}". Please try again.`, 'error');
+            }
+        }
+
+        // Make delete function global
+        window.deleteSong = deleteSong;
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -613,12 +688,16 @@
             }
 
             const songsGrid = songs.map(song => `
-                <div class="song-card" onclick="playSong('${song.audioData}', '${song.title}')">
+                <div class="song-card" onclick="playSong('${song.id}', '${song.title}', ${song.isChunked || false})">
+                    <button class="delete-btn" onclick="deleteSong('${song.id}', '${song.title}', event)" title="Delete Song">
+                        ✕
+                    </button>
                     <div class="song-title">${song.title}</div>
                     <div class="song-meta">
                         ${formatFileSize(song.size)} • ${formatDuration(song.duration)}
                         <br>
                         ${formatDate(song.uploadedAt.toDate())}
+                        ${song.isChunked ? ` • ${song.totalChunks} chunks` : ''}
                     </div>
                 </div>
             `).join('');
@@ -630,22 +709,37 @@
         }
 
         // Play song
-        window.playSong = async (audioData, title) => {
-            currentSong = { audioData, title };
-            currentTrackTitle.textContent = title;
-            audioPlayer.src = audioData; // Use base64 data URL directly
-            playerSection.classList.add('active');
-            
-            // Generate waveform when audio loads
-            audioPlayer.addEventListener('loadeddata', generateWaveform, { once: true });
-            
+        window.playSong = async (songIdOrData, title, isChunked = false) => {
             try {
+                currentTrackTitle.textContent = `Loading: ${title}`;
+                playerSection.classList.add('active');
+                
+                let audioData;
+                
+                if (isChunked) {
+                    // Show loading message for chunked files
+                    currentTrackTitle.textContent = `Reconstructing: ${title}`;
+                    audioData = await reconstructBase64FromChunks(songIdOrData);
+                } else {
+                    // For backward compatibility with non-chunked files
+                    audioData = songIdOrData;
+                }
+                
+                currentSong = { audioData, title };
+                currentTrackTitle.textContent = title;
+                audioPlayer.src = audioData;
+                
+                // Generate waveform when audio loads
+                audioPlayer.addEventListener('loadeddata', generateWaveform, { once: true });
+                
                 await audioPlayer.play();
                 isPlaying = true;
                 playBtn.textContent = '⏸️';
+                
             } catch (error) {
                 console.error('Playback error:', error);
-                showMessage('Failed to play audio', 'error');
+                showMessage('Failed to play audio. The file might be corrupted.', 'error');
+                currentTrackTitle.textContent = 'Error loading song';
             }
         };
 
@@ -750,7 +844,7 @@
                 // Update active waveform bars
                 const activeBarIndex = Math.floor((currentTime / duration) * currentWaveformBars.length);
                 currentWaveformBars.forEach((bar, index) => {
-                    if (index <= activeBarIndex) {
+                    if (index <= activeBarIndex - 1) {
                         bar.classList.add('active');
                     } else {
                         bar.classList.remove('active');
