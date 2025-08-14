@@ -2,7 +2,7 @@
 <html lang="en">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoundSync - Share Your Beats</title>
+    <title>SoundSync</title>
     <style>
         * {
             margin: 0;
@@ -11,7 +11,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, #1a0d2e 0%, #2d1b4e 50%, #4a2c6b 100%);
+            background: linear-gradient(135deg, #1a0d2e 0%, #2d1b4e 50%, #3b0066 100%);
             color: #e0d0ff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
@@ -32,7 +32,7 @@
         .logo {
             font-size: 2.5rem;
             font-weight: bold;
-            background: linear-gradient(45deg, #a855f7, #ec4899, #f97316);
+            background: linear-gradient(45deg, #42cbf5, #00c3ff, #003b4d);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -46,6 +46,31 @@
             font-size: 1.1rem;
             margin-top: 0.5rem;
             opacity: 0.9;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid #a855f7;
+            color: #e0d0ff;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: rgba(168, 85, 247, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
         }
 
         .container {
@@ -79,14 +104,11 @@
             background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
             transform: translateY(-2px);
         }
-        
-        
 
         .upload-icon {
             width: 120px;
             height: auto;
         }
-
 
         .input-group {
             margin: 1rem 0;
@@ -138,6 +160,16 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #22c55e, #16a34a);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(45deg, #3ee07a, #29c35e);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6);
         }
 
         .songs-grid {
@@ -206,6 +238,36 @@
             box-shadow: 0 4px 15px rgba(239, 68, 68, 0.6);
         }
 
+        .add-to-playlist-btn {
+            position: absolute;
+            top: 10px;
+            right: 50px;
+            background: linear-gradient(45deg, #22c55e, #16a34a);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .song-card:hover .add-to-playlist-btn {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .add-to-playlist-btn:hover {
+            background: linear-gradient(45deg, #16a34a, #15803d);
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.6);
+        }
+
         .player-section {
             position: fixed;
             bottom: 0;
@@ -246,6 +308,27 @@
 
         .play-btn:hover {
             transform: scale(1.1);
+        }
+
+        .autoplay-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(34, 197, 94, 0.8);
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .autoplay-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .autoplay-btn.active {
+            background: linear-gradient(45deg, #22c55e, #16a34a);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
         }
 
         .track-info {
@@ -338,6 +421,222 @@
             margin: 1rem 0;
         }
 
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: rgba(45, 27, 78, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #a855f7;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #e0d0ff;
+        }
+
+        .playlist-card {
+            background: rgba(45, 27, 78, 0.8);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .playlist-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.3);
+            border-color: #a855f7;
+        }
+
+        .playlist-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #a855f7;
+            margin-bottom: 0.5rem;
+        }
+
+        .playlist-meta {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .playlist-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: rgba(45, 27, 78, 0.6);
+            border-radius: 15px;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .back-btn {
+            background: rgba(156, 163, 175, 0.2);
+            border: 1px solid #9ca3af;
+            color: #e0d0ff;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(156, 163, 175, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .playlist-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .song-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(45, 27, 78, 0.8);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .song-item:hover {
+            background: rgba(168, 85, 247, 0.1);
+            transform: translateX(5px);
+        }
+
+        .song-item.playing {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .song-index {
+            color: #9ca3af;
+            font-weight: bold;
+            min-width: 30px;
+            margin-right: 1rem;
+        }
+
+        .song-details {
+            flex: 1;
+        }
+
+        .song-item-title {
+            color: #e0d0ff;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .song-item-meta {
+            color: #9ca3af;
+            font-size: 0.8rem;
+        }
+
+        .remove-from-playlist-btn {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+
+        .remove-from-playlist-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .checkbox-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 10px;
+            background: rgba(26, 13, 46, 0.5);
+            padding: 1rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 5px;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .checkbox-item:hover {
+            background: rgba(168, 85, 247, 0.1);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 0.75rem;
+            transform: scale(1.2);
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -368,21 +667,36 @@
             .songs-grid {
                 grid-template-columns: 1fr;
             }
+
+            .nav-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .playlist-controls {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
         }
     </style>
 
     <div class="header">
         <h1 class="logo">SoundSync</h1>
-        <p class="tagline">Share your beats across all devices</p>
+        <div class="nav-buttons">
+            <button class="nav-btn active" id="libraryBtn" onclick="showLibrary()">Music Library</button>
+            <button class="nav-btn" id="playlistsBtn" onclick="showPlaylists()">Playlists</button>
+            <button class="nav-btn btn-secondary" onclick="showCreatePlaylistModal()">+ Create Playlist</button>
+        </div>
     </div>
 
     <div class="container">
-        <div class="upload-section">
+        <!-- Upload Section -->
+        <div class="upload-section" id="uploadSection">
             <div class="upload-area" onclick="document.getElementById('audioFile').click()">
             <img class="upload-icon" src="https://uploads.onecompiler.io/43hrj7rd3/43tm7xcmd/Screenshot_2025-08-13_150727-removebg-preview.png" alt="Upload Icon">
-
                 <h3>Drop your audio files here or click to browse</h3>
-                <p>Supports MP3, WAV, OGG formats</p>
+                <p>MP3, WAV, OGG</p>
             </div>
             
             <input type="file" id="audioFile" accept="audio/*" style="display: none;">
@@ -397,14 +711,27 @@
             </button>
         </div>
 
+        <!-- Songs Container -->
         <div id="songsContainer">
-            <div class="loading loading-pulse">Loading your music library...</div>
+            <div class="loading loading-pulse">Loading music library...</div>
+        </div>
+
+        <!-- Playlists Container -->
+        <div id="playlistsContainer" style="display: none;">
+            <div class="loading loading-pulse">Loading playlists...</div>
+        </div>
+
+        <!-- Playlist View Container -->
+        <div id="playlistViewContainer" style="display: none;">
+            <!-- Playlist content will be dynamically loaded here -->
         </div>
     </div>
 
+    <!-- Player Section -->
     <div class="player-section" id="playerSection">
         <div class="player-controls">
             <button class="play-btn" id="playBtn">▶️</button>
+            <button class="autoplay-btn" id="autoplayBtn" title="Toggle Autoplay" style="display: none;">🔄</button>
             <div class="track-info">
                 <div class="track-title" id="currentTrackTitle">Select a song to play</div>
                 <div class="waveform-container" id="waveformContainer">
@@ -419,10 +746,45 @@
         <audio id="audioPlayer" preload="metadata"></audio>
     </div>
 
+    <!-- Create Playlist Modal -->
+    <div class="modal" id="createPlaylistModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Playlist</h3>
+                <button class="close-btn" onclick="closeModal('createPlaylistModal')">&times;</button>
+            </div>
+            <div class="input-group">
+                <label for="playlistName">Playlist Name</label>
+                <input type="text" id="playlistName" placeholder="Enter playlist name...">
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn" style="background: #6b7280;" onclick="closeModal('createPlaylistModal')">Cancel</button>
+                <button class="btn" onclick="createPlaylist()">Create Playlist</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add to Playlist Modal -->
+    <div class="modal" id="addToPlaylistModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add to Playlist</h3>
+                <button class="close-btn" onclick="closeModal('addToPlaylistModal')">&times;</button>
+            </div>
+            <div id="playlistCheckboxList" class="checkbox-list">
+                <!-- Playlist checkboxes will be loaded here -->
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                <button class="btn" style="background: #6b7280;" onclick="closeModal('addToPlaylistModal')">Cancel</button>
+                <button class="btn" onclick="addSongToSelectedPlaylists()">Add to Playlists</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, doc, onSnapshot, orderBy, query, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, getDocs, doc, onSnapshot, orderBy, query, deleteDoc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -444,19 +806,413 @@
         const songTitle = document.getElementById('songTitle');
         const uploadBtn = document.getElementById('uploadBtn');
         const songsContainer = document.getElementById('songsContainer');
+        const playlistsContainer = document.getElementById('playlistsContainer');
+        const playlistViewContainer = document.getElementById('playlistViewContainer');
+        const uploadSection = document.getElementById('uploadSection');
         const audioPlayer = document.getElementById('audioPlayer');
         const playBtn = document.getElementById('playBtn');
+        const autoplayBtn = document.getElementById('autoplayBtn');
         const playerSection = document.getElementById('playerSection');
         const currentTrackTitle = document.getElementById('currentTrackTitle');
         const waveform = document.getElementById('waveform');
         const progressOverlay = document.getElementById('progressOverlay');
         const timeInfo = document.getElementById('timeInfo');
         const waveformContainer = document.getElementById('waveformContainer');
+        const libraryBtn = document.getElementById('libraryBtn');
+        const playlistsBtn = document.getElementById('playlistsBtn');
 
+        // Global variables
         let currentSong = null;
         let isPlaying = false;
         let waveformData = [];
         let currentWaveformBars = [];
+        let currentView = 'library'; // 'library', 'playlists', 'playlist'
+        let currentPlaylist = null;
+        let currentPlaylistSongs = [];
+        let currentSongIndex = -1;
+        let isAutoplay = false;
+        let selectedSongForPlaylist = null;
+        let allSongs = [];
+        let allPlaylists = [];
+
+        // Navigation functions
+        window.showLibrary = () => {
+            currentView = 'library';
+            uploadSection.style.display = 'block';
+            songsContainer.style.display = 'block';
+            playlistsContainer.style.display = 'none';
+            playlistViewContainer.style.display = 'none';
+            autoplayBtn.style.display = 'none';
+            
+            libraryBtn.classList.add('active');
+            playlistsBtn.classList.remove('active');
+            
+            loadSongs();
+        };
+
+        window.showPlaylists = () => {
+            currentView = 'playlists';
+            uploadSection.style.display = 'none';
+            songsContainer.style.display = 'none';
+            playlistsContainer.style.display = 'block';
+            playlistViewContainer.style.display = 'none';
+            autoplayBtn.style.display = 'none';
+            
+            libraryBtn.classList.remove('active');
+            playlistsBtn.classList.add('active');
+            
+            loadPlaylists();
+        };
+
+        window.showPlaylistView = async (playlistId, playlistName) => {
+            currentView = 'playlist';
+            currentPlaylist = { id: playlistId, name: playlistName };
+            uploadSection.style.display = 'none';
+            songsContainer.style.display = 'none';
+            playlistsContainer.style.display = 'none';
+            playlistViewContainer.style.display = 'block';
+            autoplayBtn.style.display = 'block';
+            
+            await loadPlaylistView(playlistId, playlistName);
+        };
+
+        // Modal functions
+        window.showCreatePlaylistModal = () => {
+            document.getElementById('createPlaylistModal').classList.add('active');
+            document.getElementById('playlistName').focus();
+        };
+
+        window.closeModal = (modalId) => {
+            document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'createPlaylistModal') {
+                document.getElementById('playlistName').value = '';
+            }
+        };
+
+        window.createPlaylist = async () => {
+            const name = document.getElementById('playlistName').value.trim();
+            if (!name) {
+                showMessage('Please enter a playlist name', 'error');
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, 'playlists'), {
+                    name: name,
+                    songs: [],
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                });
+
+                showMessage('Playlist created successfully!', 'success');
+                closeModal('createPlaylistModal');
+                
+                if (currentView === 'playlists') {
+                    loadPlaylists();
+                }
+            } catch (error) {
+                console.error('Error creating playlist:', error);
+                showMessage('Failed to create playlist. Please try again.', 'error');
+            }
+        };
+
+        window.showAddToPlaylistModal = async (songId, songTitle) => {
+            selectedSongForPlaylist = { id: songId, title: songTitle };
+            
+            // Load playlists for checkboxes
+            const playlistCheckboxList = document.getElementById('playlistCheckboxList');
+            playlistCheckboxList.innerHTML = '<div class="loading">Loading playlists...</div>';
+            
+            try {
+                const q = query(collection(db, 'playlists'), orderBy('name'));
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    playlistCheckboxList.innerHTML = '<p style="color: #9ca3af; text-align: center;">No playlists found. Create one first!</p>';
+                } else {
+                    let checkboxHTML = '';
+                    snapshot.forEach((doc) => {
+                        const playlist = doc.data();
+                        const isInPlaylist = playlist.songs && playlist.songs.includes(songId);
+                        checkboxHTML += `
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="playlist_${doc.id}" value="${doc.id}" ${isInPlaylist ? 'checked' : ''}>
+                                <label for="playlist_${doc.id}">${playlist.name}</label>
+                            </div>
+                        `;
+                    });
+                    playlistCheckboxList.innerHTML = checkboxHTML;
+                }
+                
+                document.getElementById('addToPlaylistModal').classList.add('active');
+            } catch (error) {
+                console.error('Error loading playlists:', error);
+                playlistCheckboxList.innerHTML = '<p style="color: #ef4444; text-align: center;">Failed to load playlists</p>';
+            }
+        };
+
+        window.addSongToSelectedPlaylists = async () => {
+            if (!selectedSongForPlaylist) {
+                showMessage('No song selected', 'error');
+                return;
+            }
+
+            const checkboxes = document.querySelectorAll('#playlistCheckboxList input[type="checkbox"]');
+            if (checkboxes.length === 0) {
+                showMessage('No playlists available', 'error');
+                return;
+            }
+
+            const updates = [];
+            let addedToCount = 0;
+            let removedFromCount = 0;
+
+            for (let checkbox of checkboxes) {
+                const playlistId = checkbox.value;
+                const isChecked = checkbox.checked;
+                
+                try {
+                    const playlistRef = doc(db, 'playlists', playlistId);
+                    const playlistDoc = await getDoc(playlistRef);
+                    
+                    if (!playlistDoc.exists()) {
+                        console.error(`Playlist ${playlistId} not found`);
+                        continue;
+                    }
+                    
+                    const currentSongs = playlistDoc.data().songs || [];
+                    
+                    if (isChecked && !currentSongs.includes(selectedSongForPlaylist.id)) {
+                        updates.push(updateDoc(playlistRef, {
+                            songs: arrayUnion(selectedSongForPlaylist.id),
+                            updatedAt: new Date()
+                        }));
+                        addedToCount++;
+                    } else if (!isChecked && currentSongs.includes(selectedSongForPlaylist.id)) {
+                        updates.push(updateDoc(playlistRef, {
+                            songs: arrayRemove(selectedSongForPlaylist.id),
+                            updatedAt: new Date()
+                        }));
+                        removedFromCount++;
+                    }
+                } catch (error) {
+                    console.error('Error checking playlist:', error);
+                }
+            }
+
+            if (updates.length === 0) {
+                showMessage('No changes to make', 'success');
+                closeModal('addToPlaylistModal');
+                return;
+            }
+
+            try {
+                await Promise.all(updates);
+                
+                let message = '';
+                if (addedToCount > 0 && removedFromCount > 0) {
+                    message = `"${selectedSongForPlaylist.title}" added to ${addedToCount} and removed from ${removedFromCount} playlists`;
+                } else if (addedToCount > 0) {
+                    message = `"${selectedSongForPlaylist.title}" added to ${addedToCount} playlist${addedToCount > 1 ? 's' : ''}`;
+                } else if (removedFromCount > 0) {
+                    message = `"${selectedSongForPlaylist.title}" removed from ${removedFromCount} playlist${removedFromCount > 1 ? 's' : ''}`;
+                }
+                
+                showMessage(message, 'success');
+                closeModal('addToPlaylistModal');
+                
+                // Refresh current view if in playlist
+                if (currentView === 'playlist' && currentPlaylist) {
+                    loadPlaylistView(currentPlaylist.id, currentPlaylist.name);
+                }
+            } catch (error) {
+                console.error('Error updating playlists:', error);
+                showMessage('Failed to update playlists. Please try again.', 'error');
+            }
+        };
+
+        // Playlist functions
+        window.deletePlaylist = async (playlistId, playlistName, event) => {
+            event.stopPropagation();
+            
+            if (!confirm(`Are you sure you want to delete the playlist "${playlistName}"? This cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                await deleteDoc(doc(db, 'playlists', playlistId));
+                showMessage(`Playlist "${playlistName}" deleted successfully!`, 'success');
+                
+                if (currentView === 'playlists') {
+                    loadPlaylists();
+                } else if (currentView === 'playlist' && currentPlaylist && currentPlaylist.id === playlistId) {
+                    showPlaylists();
+                }
+            } catch (error) {
+                console.error('Error deleting playlist:', error);
+                showMessage(`Failed to delete playlist "${playlistName}". Please try again.`, 'error');
+            }
+        };
+
+        window.removeSongFromPlaylist = async (songId, event) => {
+            event.stopPropagation();
+            
+            if (!currentPlaylist) return;
+
+            try {
+                const playlistRef = doc(db, 'playlists', currentPlaylist.id);
+                await updateDoc(playlistRef, {
+                    songs: arrayRemove(songId),
+                    updatedAt: new Date()
+                });
+
+                loadPlaylistView(currentPlaylist.id, currentPlaylist.name);
+            } catch (error) {
+                console.error('Error removing song from playlist:', error);
+                showMessage('Failed to remove song from playlist. Please try again.', 'error');
+            }
+        };
+
+        window.playPlaylistSong = (index) => {
+            if (index >= 0 && index < currentPlaylistSongs.length) {
+                currentSongIndex = index;
+                const song = currentPlaylistSongs[index];
+                playSong(song.id, song.title, song.isChunked || false);
+            }
+        };
+
+        // Load functions
+        async function loadPlaylists() {
+            try {
+                const q = query(collection(db, 'playlists'), orderBy('updatedAt', 'desc'));
+                
+                onSnapshot(q, async (snapshot) => {
+                    allPlaylists = [];
+                    const playlistPromises = [];
+
+                    snapshot.forEach((doc) => {
+                        const playlist = { id: doc.id, ...doc.data() };
+                        allPlaylists.push(playlist);
+                        playlistPromises.push(playlist);
+                    });
+
+                    displayPlaylists(allPlaylists);
+                });
+
+            } catch (error) {
+                console.error('Error loading playlists:', error);
+                playlistsContainer.innerHTML = '<div class="error">Failed to load playlists</div>';
+            }
+        }
+
+        function displayPlaylists(playlists) {
+            if (playlists.length === 0) {
+                playlistsContainer.innerHTML = `
+                    <div style="text-align: center; color: #9ca3af; margin: 2rem 0;">
+                        <h3>No playlists created yet</h3>
+                        <p>Create your first playlist to organize your music!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const playlistsHTML = playlists.map(playlist => `
+                <div class="playlist-card" onclick="showPlaylistView('${playlist.id}', '${playlist.name}')">
+                    <button class="delete-btn" onclick="deletePlaylist('${playlist.id}', '${playlist.name}', event)" title="Delete Playlist">
+                        ✕
+                    </button>
+                    <div class="playlist-title">${playlist.name}</div>
+                    <div class="playlist-meta">
+                        ${playlist.songs ? playlist.songs.length : 0} songs
+                        <br>
+                        ${formatDate(playlist.updatedAt.toDate())}
+                    </div>
+                </div>
+            `).join('');
+
+            playlistsContainer.innerHTML = `
+                <h2 style="color: #a855f7; margin-bottom: 1rem;">Your Playlists</h2>
+                ${playlistsHTML}
+            `;
+        }
+
+        async function loadPlaylistView(playlistId, playlistName) {
+            try {
+                playlistViewContainer.innerHTML = '<div class="loading loading-pulse">Loading playlist...</div>';
+
+                const playlistDoc = await getDoc(doc(db, 'playlists', playlistId));
+                if (!playlistDoc.exists()) {
+                    playlistViewContainer.innerHTML = '<div class="error">Playlist not found</div>';
+                    return;
+                }
+
+                const playlist = playlistDoc.data();
+                const songIds = playlist.songs || [];
+
+                // Get all songs to match with playlist
+                const songsQuery = query(collection(db, 'songs'), orderBy('uploadedAt', 'desc'));
+                const songsSnapshot = await getDocs(songsQuery);
+                
+                currentPlaylistSongs = [];
+                songsSnapshot.forEach((doc) => {
+                    if (songIds.includes(doc.id)) {
+                        currentPlaylistSongs.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+
+                // Sort playlist songs by their order in the playlist
+                currentPlaylistSongs.sort((a, b) => {
+                    const indexA = songIds.indexOf(a.id);
+                    const indexB = songIds.indexOf(b.id);
+                    return indexA - indexB;
+                });
+
+                displayPlaylistView(playlistName, currentPlaylistSongs);
+
+            } catch (error) {
+                console.error('Error loading playlist view:', error);
+                playlistViewContainer.innerHTML = '<div class="error">Failed to load playlist</div>';
+            }
+        }
+
+        function displayPlaylistView(playlistName, songs) {
+            let songsHTML = '';
+            
+            if (songs.length === 0) {
+                songsHTML = `
+                    <div style="text-align: center; color: #9ca3af; margin: 2rem 0;">
+                        <h3>This playlist is empty</h3>
+                        <p>Go to your music library and add some songs!</p>
+                    </div>
+                `;
+            } else {
+                songsHTML = songs.map((song, index) => `
+                    <div class="song-item ${currentSongIndex === index ? 'playing' : ''}" onclick="playPlaylistSong(${index})">
+                        <div class="song-index">${index + 1}</div>
+                        <div class="song-details">
+                            <div class="song-item-title">${song.title}</div>
+                            <div class="song-item-meta">
+                                ${formatFileSize(song.size)} • ${formatDuration(song.duration)}
+                            </div>
+                        </div>
+                        <button class="remove-from-playlist-btn" onclick="removeSongFromPlaylist('${song.id}', event)" title="Remove from playlist">
+                            ✕
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            playlistViewContainer.innerHTML = `
+                <div class="playlist-controls">
+                    <button class="back-btn" onclick="showPlaylists()">← Back to Playlists</button>
+                    <div class="playlist-actions">
+                        <h2 style="color: #a855f7; margin: 0;">${playlistName}</h2>
+                        <span style="color: #9ca3af;">${songs.length} songs</span>
+                    </div>
+                </div>
+                ${songsHTML}
+            `;
+        }
 
         // File input change handler
         audioFile.addEventListener('change', (e) => {
@@ -471,17 +1227,35 @@
 
         // Delete song and all related chunks
         async function deleteSong(songId, songTitle, event) {
-            event.stopPropagation(); // Prevent playing the song when delete is clicked
+            event.stopPropagation(); 
             
-            if (!confirm(`Are you sure you want to delete "${songTitle}"? This cannot be undone.`)) {
+            if (!confirm(`Are you sure you want to delete "${songTitle}"? This will also remove it from all playlists. This cannot be undone.`)) {
                 return;
             }
 
             try {
-                // Show deleting message
                 showMessage(`Deleting "${songTitle}"...`, 'error');
 
-                // Delete all chunks first (if it's a chunked song)
+                // Remove from all playlists first
+                const playlistsQuery = query(collection(db, 'playlists'));
+                const playlistsSnapshot = await getDocs(playlistsQuery);
+                const playlistUpdates = [];
+
+                playlistsSnapshot.forEach((playlistDoc) => {
+                    const playlist = playlistDoc.data();
+                    if (playlist.songs && playlist.songs.includes(songId)) {
+                        playlistUpdates.push(
+                            updateDoc(doc(db, 'playlists', playlistDoc.id), {
+                                songs: arrayRemove(songId),
+                                updatedAt: new Date()
+                            })
+                        );
+                    }
+                });
+
+                await Promise.all(playlistUpdates);
+
+                // Delete all chunks (if it's a chunked song)
                 const chunksSnapshot = await getDocs(collection(db, `songs/${songId}/chunks`));
                 const deleteChunkPromises = [];
                 
@@ -504,6 +1278,12 @@
                     currentSong = null;
                     isPlaying = false;
                     playBtn.textContent = '▶️';
+                    autoplayBtn.style.display = 'none';
+                }
+
+                // Refresh current view
+                if (currentView === 'playlist' && currentPlaylist) {
+                    loadPlaylistView(currentPlaylist.id, currentPlaylist.name);
                 }
 
             } catch (error) {
@@ -512,8 +1292,8 @@
             }
         }
 
-        // Make delete function global
         window.deleteSong = deleteSong;
+
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -539,7 +1319,6 @@
         // Reconstruct base64 data from chunks
         async function reconstructBase64FromChunks(songId) {
             try {
-                // Get the main song document first to know how many chunks
                 const songDoc = await getDocs(query(collection(db, 'songs'), 
                     orderBy('uploadedAt', 'desc')));
                 
@@ -554,25 +1333,13 @@
                     throw new Error('Song metadata not found');
                 }
 
-                // Get all chunks
-                const chunkPromises = [];
-                for (let i = 0; i < mainSong.totalChunks; i++) {
-                    chunkPromises.push(
-                        getDocs(query(collection(db, `songs/${songId}/chunks`)))
-                    );
-                }
-
-                const chunkDocs = await Promise.all(chunkPromises);
                 const chunks = [];
-                
-                // Get chunks from subcollection
                 const chunksSnapshot = await getDocs(collection(db, `songs/${songId}/chunks`));
                 chunksSnapshot.forEach(doc => {
                     const data = doc.data();
                     chunks[data.index] = data.chunk;
                 });
 
-                // Reconstruct the full base64 string
                 const fullData = chunks.join('');
                 return `${mainSong.mimeTypePrefix},${fullData}`;
 
@@ -596,14 +1363,10 @@
             uploadBtn.textContent = 'Converting & Uploading...';
 
             try {
-                // Convert audio file to base64
                 const base64Data = await fileToBase64(file);
                 const duration = await getAudioDuration(file);
-                
-                // Split base64 data into chunks
                 const { chunks, mimeType } = chunkBase64Data(base64Data);
 
-                // Save main song metadata to Firestore
                 const songDocRef = await addDoc(collection(db, 'songs'), {
                     title: title,
                     filename: file.name,
@@ -616,7 +1379,6 @@
                     isChunked: true
                 });
 
-                // Save chunks to subcollection
                 const chunkPromises = chunks.map((chunk, index) => 
                     addDoc(collection(db, `songs/${songDocRef.id}/chunks`), {
                         index: index,
@@ -629,7 +1391,6 @@
 
                 showMessage(`Song uploaded successfully in ${chunks.length} chunks!`, 'success');
                 
-                // Reset form
                 audioFile.value = '';
                 songTitle.value = '';
                 uploadBtn.disabled = true;
@@ -643,7 +1404,6 @@
             }
         });
 
-        // Get audio duration
         function getAudioDuration(file) {
             return new Promise((resolve) => {
                 const audio = document.createElement('audio');
@@ -655,18 +1415,16 @@
             });
         }
 
-        // Load and display songs
         async function loadSongs() {
             try {
                 const q = query(collection(db, 'songs'), orderBy('uploadedAt', 'desc'));
                 
-                // Real-time listener for songs
                 onSnapshot(q, (snapshot) => {
-                    const songs = [];
+                    allSongs = [];
                     snapshot.forEach((doc) => {
-                        songs.push({ id: doc.id, ...doc.data() });
+                        allSongs.push({ id: doc.id, ...doc.data() });
                     });
-                    displaySongs(songs);
+                    displaySongs(allSongs);
                 });
 
             } catch (error) {
@@ -675,7 +1433,6 @@
             }
         }
 
-        // Display songs
         function displaySongs(songs) {
             if (songs.length === 0) {
                 songsContainer.innerHTML = `
@@ -692,6 +1449,9 @@
                     <button class="delete-btn" onclick="deleteSong('${song.id}', '${song.title}', event)" title="Delete Song">
                         ✕
                     </button>
+                    <button class="add-to-playlist-btn" onclick="showAddToPlaylistModal('${song.id}', '${song.title.replace(/'/g, "\\'")}', event)" title="Add to Playlist">
+                        +
+                    </button>
                     <div class="song-title">${song.title}</div>
                     <div class="song-meta">
                         ${formatFileSize(song.size)} • ${formatDuration(song.duration)}
@@ -703,10 +1463,48 @@
             `).join('');
 
             songsContainer.innerHTML = `
-                <h2 style="color: #a855f7; margin-bottom: 1rem;">Your Music Library</h2>
+                <h2 style="color: #a855f7; margin-bottom: 1rem;">Music Library</h2>
                 <div class="songs-grid">${songsGrid}</div>
             `;
         }
+
+        // Add event handler for add to playlist button
+        window.showAddToPlaylistModal = async (songId, songTitle, event) => {
+            event.stopPropagation();
+            selectedSongForPlaylist = { id: songId, title: songTitle };
+            
+            // Load playlists for checkboxes
+            const playlistCheckboxList = document.getElementById('playlistCheckboxList');
+            playlistCheckboxList.innerHTML = '<div class="loading">Loading playlists...</div>';
+            
+            try {
+                const q = query(collection(db, 'playlists'), orderBy('name'));
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    playlistCheckboxList.innerHTML = '<p style="color: #9ca3af; text-align: center;">No playlists found. Create one first!</p>';
+                } else {
+                    let checkboxHTML = '';
+                    snapshot.forEach((doc) => {
+                        const playlist = doc.data();
+                        const isInPlaylist = playlist.songs && playlist.songs.includes(songId);
+                        checkboxHTML += `
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="playlist_${doc.id}" value="${doc.id}" ${isInPlaylist ? 'checked' : ''}>
+                                <label for="playlist_${doc.id}">${playlist.name}</label>
+                            </div>
+                        `;
+                    });
+                    playlistCheckboxList.innerHTML = checkboxHTML;
+                }
+                
+                document.getElementById('addToPlaylistModal').classList.add('active');
+            } catch (error) {
+                console.error('Error loading playlists:', error);
+                playlistCheckboxList.innerHTML = '<p style="color: #ef4444; text-align: center;">Failed to load playlists</p>';
+                document.getElementById('addToPlaylistModal').classList.add('active');
+            }
+        };
 
         // Play song
         window.playSong = async (songIdOrData, title, isChunked = false) => {
@@ -717,11 +1515,9 @@
                 let audioData;
                 
                 if (isChunked) {
-                    // Show loading message for chunked files
                     currentTrackTitle.textContent = `Reconstructing: ${title}`;
                     audioData = await reconstructBase64FromChunks(songIdOrData);
                 } else {
-                    // For backward compatibility with non-chunked files
                     audioData = songIdOrData;
                 }
                 
@@ -729,12 +1525,16 @@
                 currentTrackTitle.textContent = title;
                 audioPlayer.src = audioData;
                 
-                // Generate waveform when audio loads
                 audioPlayer.addEventListener('loadeddata', generateWaveform, { once: true });
                 
                 await audioPlayer.play();
                 isPlaying = true;
                 playBtn.textContent = '⏸️';
+                
+                // Show autoplay button if in playlist view
+                if (currentView === 'playlist') {
+                    autoplayBtn.style.display = 'block';
+                }
                 
             } catch (error) {
                 console.error('Playback error:', error);
@@ -743,13 +1543,45 @@
             }
         };
 
+        // Autoplay functionality
+        autoplayBtn.addEventListener('click', () => {
+            isAutoplay = !isAutoplay;
+            autoplayBtn.classList.toggle('active', isAutoplay);
+            autoplayBtn.title = isAutoplay ? 'Autoplay: ON' : 'Autoplay: OFF';
+            
+            if (isAutoplay) {
+                showMessage('Autoplay enabled', 'success');
+            } else {
+                showMessage('Autoplay disabled', 'success');
+            }
+        });
+
+        // Audio ended - autoplay next song if enabled and in playlist
+        audioPlayer.addEventListener('ended', () => {
+            isPlaying = false;
+            playBtn.textContent = '▶️';
+            progressOverlay.style.width = '0%';
+            currentWaveformBars.forEach(bar => bar.classList.remove('active'));
+            
+            if (isAutoplay && currentView === 'playlist' && currentPlaylistSongs.length > 0) {
+                const nextIndex = currentSongIndex + 1;
+                if (nextIndex < currentPlaylistSongs.length) {
+                    setTimeout(() => {
+                        playPlaylistSong(nextIndex);
+                    }, 1000); // 1 second delay before next song
+                } else {
+                    // Reached end of playlist
+                    currentSongIndex = -1;
+                    showMessage('End of playlist reached', 'success');
+                }
+            }
+        });
+
         // Generate waveform visualization
         async function generateWaveform() {
             try {
-                // Create AudioContext for waveform analysis
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 
-                // Convert base64 to array buffer
                 const base64Data = audioPlayer.src.split(',')[1];
                 const binaryString = window.atob(base64Data);
                 const bytes = new Uint8Array(binaryString.length);
@@ -759,12 +1591,7 @@
                 const arrayBuffer = bytes.buffer;
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                 
-                // Get audio data
                 const channelData = audioBuffer.getChannelData(0);
-                const sampleRate = audioBuffer.sampleRate;
-                const duration = audioBuffer.duration;
-                
-                // Create waveform data (200 bars)
                 const barCount = 200;
                 const samplesPerBar = Math.floor(channelData.length / barCount);
                 waveformData = [];
@@ -782,7 +1609,6 @@
                     waveformData.push(Math.min(average * 100, 100));
                 }
                 
-                // Create waveform bars
                 waveform.innerHTML = '';
                 currentWaveformBars = [];
                 
@@ -797,12 +1623,10 @@
                 
             } catch (error) {
                 console.error('Waveform generation error:', error);
-                // Fallback to simple bars
                 createFallbackWaveform();
             }
         }
 
-        // Create fallback waveform
         function createFallbackWaveform() {
             waveform.innerHTML = '';
             currentWaveformBars = [];
@@ -841,7 +1665,6 @@
                 const progress = (currentTime / duration) * 100;
                 progressOverlay.style.width = `${progress}%`;
                 
-                // Update active waveform bars
                 const activeBarIndex = Math.floor((currentTime / duration) * currentWaveformBars.length);
                 currentWaveformBars.forEach((bar, index) => {
                     if (index <= activeBarIndex - 1) {
@@ -851,7 +1674,6 @@
                     }
                 });
                 
-                // Update time display
                 timeInfo.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
             }
         });
@@ -868,24 +1690,21 @@
             audioPlayer.currentTime = seekTime;
         });
 
-        // Audio ended
-        audioPlayer.addEventListener('ended', () => {
-            isPlaying = false;
-            playBtn.textContent = '▶️';
-            progressOverlay.style.width = '0%';
-            currentWaveformBars.forEach(bar => bar.classList.remove('active'));
-        });
-
         // Utility functions
         function showMessage(message, type) {
             const messageDiv = document.createElement('div');
             messageDiv.className = type;
             messageDiv.textContent = message;
             
-            document.querySelector('.upload-section').insertBefore(
-                messageDiv, 
-                document.querySelector('.upload-area')
-            );
+            const targetSection = currentView === 'library' ? 
+                document.querySelector('.upload-section') : 
+                document.querySelector('.container');
+            
+            if (currentView === 'library') {
+                targetSection.insertBefore(messageDiv, document.querySelector('.upload-area'));
+            } else {
+                targetSection.insertBefore(messageDiv, targetSection.firstChild);
+            }
             
             setTimeout(() => {
                 messageDiv.remove();
@@ -915,8 +1734,261 @@
             return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
         }
 
+        // Close modals when clicking outside
+        document.addEventListener('click', (e) => {
+            const modals = document.querySelectorAll('.modal.active');
+            modals.forEach(modal => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // Handle Enter key for playlist creation
+        document.getElementById('playlistName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                createPlaylist();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Space bar to play/pause (when not in input fields)
+            if (e.code === 'Space' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+                e.preventDefault();
+                if (currentSong) {
+                    playBtn.click();
+                }
+            }
+            
+            // Arrow keys for playlist navigation (when in playlist view)
+            if (currentView === 'playlist' && currentPlaylistSongs.length > 0) {
+                if (e.code === 'ArrowUp' && currentSongIndex > 0) {
+                    e.preventDefault();
+                    playPlaylistSong(currentSongIndex - 1);
+                } else if (e.code === 'ArrowDown' && currentSongIndex < currentPlaylistSongs.length - 1) {
+                    e.preventDefault();
+                    playPlaylistSong(currentSongIndex + 1);
+                }
+            }
+            
+            // Escape key to close modals
+            if (e.code === 'Escape') {
+                const activeModals = document.querySelectorAll('.modal.active');
+                activeModals.forEach(modal => modal.classList.remove('active'));
+            }
+        });
+
+        // Update playlist view when songs are playing
+        function updatePlaylistView() {
+            if (currentView === 'playlist') {
+                const songItems = document.querySelectorAll('.song-item');
+                songItems.forEach((item, index) => {
+                    if (index === currentSongIndex) {
+                        item.classList.add('playing');
+                    } else {
+                        item.classList.remove('playing');
+                    }
+                });
+            }
+        }
+
+        // Enhanced play function for playlist context
+        const originalPlaySong = window.playSong;
+        window.playSong = async (songIdOrData, title, isChunked = false) => {
+            await originalPlaySong(songIdOrData, title, isChunked);
+            updatePlaylistView();
+        };
+
         // Initialize app
         loadSongs();
+
+        // Service worker for offline functionality (optional enhancement)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // Add visual feedback for interactions
+        function addRippleEffect(element, event) {
+            const rect = element.getBoundingClientRect();
+            const ripple = document.createElement('div');
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+                position: absolute;
+                width: ${size}px;
+                height: ${size}px;
+                left: ${x}px;
+                top: ${y}px;
+                background: rgba(168, 85, 247, 0.3);
+                border-radius: 50%;
+                transform: scale(0);
+                animation: ripple 0.6s ease-out;
+                pointer-events: none;
+                z-index: 1;
+            `;
+            
+            element.style.position = 'relative';
+            element.style.overflow = 'hidden';
+            element.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+
+        // Add ripple effect styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+            
+            .song-card, .playlist-card, .btn, .nav-btn {
+                position: relative;
+                overflow: hidden;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Add ripple effect to clickable elements (but exclude playlist buttons)
+        document.addEventListener('click', (e) => {
+            // Don't add ripple to playlist control buttons
+            if (e.target.closest('.add-to-playlist-btn, .delete-btn, .remove-from-playlist-btn')) {
+                return;
+            }
+            
+            const clickableElements = ['.song-card', '.playlist-card', '.btn', '.nav-btn'];
+            const element = e.target.closest(clickableElements.join(', '));
+            
+            if (element) {
+                addRippleEffect(element, e);
+            }
+        });
+
+        // Performance optimization: Debounce search functionality
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Add search functionality (future enhancement placeholder)
+        window.searchSongs = debounce((query) => {
+            if (!query.trim()) {
+                displaySongs(allSongs);
+                return;
+            }
+            
+            const filteredSongs = allSongs.filter(song => 
+                song.title.toLowerCase().includes(query.toLowerCase()) ||
+                song.filename.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            displaySongs(filteredSongs);
+        }, 300);
+
+        // Add drag and drop functionality for playlist reordering (future enhancement)
+        let draggedSong = null;
+
+        function enablePlaylistDragDrop() {
+            if (currentView !== 'playlist') return;
+            
+            const songItems = document.querySelectorAll('.song-item');
+            songItems.forEach((item, index) => {
+                item.draggable = true;
+                
+                item.addEventListener('dragstart', (e) => {
+                    draggedSong = { element: item, index: index };
+                    item.style.opacity = '0.5';
+                });
+                
+                item.addEventListener('dragend', (e) => {
+                    item.style.opacity = '1';
+                    draggedSong = null;
+                });
+                
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                });
+                
+                item.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (draggedSong && draggedSong.index !== index) {
+                        // Reorder playlist logic would go here
+                        console.log(`Move song from index ${draggedSong.index} to ${index}`);
+                    }
+                });
+            });
+        }
+
+        // Enhanced error handling and retry mechanisms
+        async function retryOperation(operation, maxRetries = 3, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
+                }
+            }
+        }
+
+        // Add loading states for better UX
+        function setLoadingState(element, isLoading) {
+            if (isLoading) {
+                element.disabled = true;
+                element.classList.add('loading-pulse');
+                const originalText = element.textContent;
+                element.dataset.originalText = originalText;
+                element.textContent = 'Loading...';
+            } else {
+                element.disabled = false;
+                element.classList.remove('loading-pulse');
+                element.textContent = element.dataset.originalText || element.textContent;
+            }
+        }
+
+        // Enhanced analytics and usage tracking (optional)
+        function trackEvent(eventName, properties = {}) {
+            // Analytics integration would go here
+            console.log(`Event: ${eventName}`, properties);
+        }
+
+        // Track playlist interactions
+        const originalCreatePlaylist = window.createPlaylist;
+        window.createPlaylist = async () => {
+            trackEvent('playlist_created');
+            return await originalCreatePlaylist();
+        };
+
+        // Initialize drag and drop when playlist view loads
+        const originalLoadPlaylistView = loadPlaylistView;
+        loadPlaylistView = async (playlistId, playlistName) => {
+            await originalLoadPlaylistView(playlistId, playlistName);
+            setTimeout(enablePlaylistDragDrop, 100); // Small delay to ensure DOM is ready
+        };
+
+        console.log('soundsync loaded');
     </script>
 </body>
 </html>
